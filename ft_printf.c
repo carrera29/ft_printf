@@ -6,7 +6,7 @@
 /*   By: clcarre <clcarrer@student.42madrid.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 08:19:39 by clcarre           #+#    #+#             */
-/*   Updated: 2022/04/14 12:56:27 by clcarre          ###   ########.fr       */
+/*   Updated: 2022/04/14 13:17:15 by clcarre          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,22 +102,15 @@ static int	ft_putnbr_fd(int n, int fd, int c)
 	return (c + ft_contador(n));
 }
 
-static int	ft_dec_a_hex(int n, int fd, char *base, int c)
+void	ft_dec_a_hex(int n, int fd, char *base, int c)
 {
-	int	i;
-
-	i = 0;
 	if (n > 16)
 	{
 		ft_dec_a_hex(n / 16, fd, base, c);
 		n = (n % 16);
 	}
 	if (n <= 16)
-	{
 		write (fd, &base[n], 1);
-		i = (i + 1) + c;
-	}
-	return (i);
 }
 
 int	ft_printf(char const *str, ...)
