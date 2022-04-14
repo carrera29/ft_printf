@@ -6,7 +6,7 @@
 /*   By: clcarre <clcarrer@student.42madrid.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 08:19:39 by clcarre           #+#    #+#             */
-/*   Updated: 2022/04/14 09:23:00 by clcarre          ###   ########.fr       */
+/*   Updated: 2022/04/14 12:56:27 by clcarre          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,14 +33,40 @@ Una pequeña y simple descripción de las conversiones que se te piden:
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "ft_printf.h"
 
-void	ft_putunsigned_fd(int n, int fd)
+static int	ft_putstr_fd(char *s, int fd, int c)
 {
-	if (n < 0)
-		return ;
-	else if (n > 9)
+	unsigned int	i;
+
+	if (!s)
+		return (0);
+	i = 0;
+	while (s[i])
+		write(fd, &s[i++], 1);
+	return (i + c);
+}
+
+static int	ft_contador(int n)
+{
+	int	i;
+
+	i = 0;
+	if (n <= 0)
+		i++;
+	while (n != 0)
 	{
-		ft_putunsigned_fd(n / 10, fd);
+		n = n / 10;
+		i++;
+	}
+	return (i);
+}
+
+static int	ft_putunsigned_fd(int n, int fd, int c)
+{
+	if (n > 9)
+	{
+		ft_putunsigned_fd(n / 10, fd, c);
 		n = (n % 10);
 	}
 	if (n < 10 && n >= 0)
@@ -48,20 +74,10 @@ void	ft_putunsigned_fd(int n, int fd)
 		n = n + 48;
 		write (fd, &n, 1);
 	}
+	return (c + ft_contador(n));
 }
 
-void	ft_putstr_fd(char *s, int fd)
-{
-	int	i;
-
-	if (!s)
-		return ;
-	i = 0;
-	while (s[i])
-		write(fd, &s[i++], 1);
-}
-
-void	ft_putnbr_fd(int n, int fd)
+static int	ft_putnbr_fd(int n, int fd, int c)
 {
 	if (n == -2147483648)
 		write (fd, "-2147483648", 11);
@@ -74,7 +90,7 @@ void	ft_putnbr_fd(int n, int fd)
 		}
 		if (n > 9)
 		{
-			ft_putnbr_fd(n / 10, fd);
+			ft_putnbr_fd(n / 10, fd, c);
 			n = (n % 10);
 		}
 		if (n < 10 && n >= 0)
@@ -83,59 +99,70 @@ void	ft_putnbr_fd(int n, int fd)
 			write (fd, &n, 1);
 		}
 	}
+	return (c + ft_contador(n));
 }
 
-void	ft_dec_a_hex(int n, int fd, char *base)
+static int	ft_dec_a_hex(int n, int fd, char *base, int c)
 {
-	int		i;
+	int	i;
 
+	i = 0;
 	if (n > 16)
 	{
-		ft_dec_a_hex(n / 16, fd, base);
+		ft_dec_a_hex(n / 16, fd, base, c);
 		n = (n % 16);
 	}
 	if (n <= 16)
 	{
-		i = 0;
-		while (i < n)
-			base[i++];
-		write (fd, &base[i], 1);
+		write (fd, &base[n], 1);
+		i = (i + 1) + c;
 	}
+	return (i);
 }
 
 int	ft_printf(char const *str, ...)
 {
 	va_list			args;
 	unsigned int	i;
+	unsigned int	c;
 
 	va_start(args, str);
 	i = 0;
+	c = 0;
 	while (str[i])
 	{
 		if (str[i] == '%')
 		{
 			if (str[i + 1] == 's' || str[i + 1] == 'c')
-				ft_putstr_fd(va_arg(args, char *), 1);
+				c = ft_putstr_fd(va_arg(args, char *), 1, c);
 			else if (str[i + 1] == 'd' || str[i + 1] == 'i')
-				ft_putnbr_fd(va_arg(args, int), 1);
+				c = ft_putnbr_fd(va_arg(args, int), 1, c);
+			else if (str[i + 1] == 'u')
+				c = ft_putunsigned_fd(va_arg(args, unsigned int), 1, c);
 			else if (str[i + 1] == 'x')
-				ft_dec_a_hex(va_arg(args, int), 1, "0123456789abcdef");
+				ft_dec_a_hex(va_arg(args, int), 1, "0123456789abcdef", c);
 			else if (str[i + 1] == 'X')
-				ft_dec_a_hex(va_arg(args, int), 1, "0123456789ABCDEF");
+				ft_dec_a_hex(va_arg(args, int), 1, "0123456789ABCDEF", c);
 			else if (str[i + 1] == '%')
+			{
 				write (1, "%%", 1);
+				c++;
+			}
 			i = i + 2;
 		}
-		write (1, &str[i], 1);
-		i++;
+		write (1, &str[i++], 1);
+		c++;
 	}
 	va_end(args);
-	return (0);
+	return (c);
 }
 
 int	main(void)
-{
-	printf("Hola la direccción de str es %X\n", 940);
-	ft_printf("Hola la direccción de str es %X\n", 940);
+{	
+	int	x;
+
+	printf("El caracter es %%%\n");
+	//x = ft_printf("El caracter es %x\n", 160);
+	//printf("%d", x);
 	return (0);
 }
