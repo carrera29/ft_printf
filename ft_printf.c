@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_printf.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clcarre <clcarrer@student.42madrid.com>    +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/12 08:19:39 by clcarre           #+#    #+#             */
-/*   Updated: 2022/04/14 13:17:15 by clcarre          ###   ########.fr       */
+/*   Updated: 2022/04/19 13:46:21 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,88 +29,33 @@ Una pequeña y simple descripción de las conversiones que se te piden:
 - %X para imprimir un número hexadecimal (de base 16), en mayúscula.
 - % % para imprimir el signo del porcentaje.
 */
-#include <stdarg.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
 #include "ft_printf.h"
 
-static int	ft_putstr_fd(char *s, int fd, int c)
+static int	ft_write(va_list args, char const str)
 {
-	unsigned int	i;
+	int	c;
 
-	if (!s)
-		return (0);
-	i = 0;
-	while (s[i])
-		write(fd, &s[i++], 1);
-	return (i + c);
-}
-
-static int	ft_contador(int n)
-{
-	int	i;
-
-	i = 0;
-	if (n <= 0)
-		i++;
-	while (n != 0)
+	c = 0;
+	if (str == 'c')
+		c = c + ft_put_c(va_arg(args, int), 1);
+	else if (str == 's')
+		c = c + ft_put_str(va_arg(args, char *), 1);
+	else if (str == 'p')
+		c = c + ft_put_ptr(va_arg(args, unsigned long long), 1);
+	else if (str == 'd' || str == 'i')
+		c = c + ft_put_nbr(va_arg(args, int), 1);
+	else if (str == 'u')
+		c = c + ft_put_unsigned(va_arg(args, unsigned int), 1);
+	else if (str == 'x')
+		c = c + ft_dec_a_hex(va_arg(args, unsigned int), 1, "0123456789abcdef");
+	else if (str == 'X')
+		c = c + ft_dec_a_hex(va_arg(args, unsigned int), 1, "0123456789ABCDEF");
+	else if (str == '%')
 	{
-		n = n / 10;
-		i++;
+		write (1, "%%", 1);
+		c++;
 	}
-	return (i);
-}
-
-static int	ft_putunsigned_fd(int n, int fd, int c)
-{
-	if (n > 9)
-	{
-		ft_putunsigned_fd(n / 10, fd, c);
-		n = (n % 10);
-	}
-	if (n < 10 && n >= 0)
-	{
-		n = n + 48;
-		write (fd, &n, 1);
-	}
-	return (c + ft_contador(n));
-}
-
-static int	ft_putnbr_fd(int n, int fd, int c)
-{
-	if (n == -2147483648)
-		write (fd, "-2147483648", 11);
-	else
-	{
-		if (n < 0)
-		{
-			write (fd, "-", 1);
-			n *= -1;
-		}
-		if (n > 9)
-		{
-			ft_putnbr_fd(n / 10, fd, c);
-			n = (n % 10);
-		}
-		if (n < 10 && n >= 0)
-		{
-			n = n + 48;
-			write (fd, &n, 1);
-		}
-	}
-	return (c + ft_contador(n));
-}
-
-void	ft_dec_a_hex(int n, int fd, char *base, int c)
-{
-	if (n > 16)
-	{
-		ft_dec_a_hex(n / 16, fd, base, c);
-		n = (n % 16);
-	}
-	if (n <= 16)
-		write (fd, &base[n], 1);
+	return (c);
 }
 
 int	ft_printf(char const *str, ...)
@@ -122,40 +67,31 @@ int	ft_printf(char const *str, ...)
 	va_start(args, str);
 	i = 0;
 	c = 0;
-	while (str[i])
+	while (str[i] != '\0')
 	{
 		if (str[i] == '%')
 		{
-			if (str[i + 1] == 's' || str[i + 1] == 'c')
-				c = ft_putstr_fd(va_arg(args, char *), 1, c);
-			else if (str[i + 1] == 'd' || str[i + 1] == 'i')
-				c = ft_putnbr_fd(va_arg(args, int), 1, c);
-			else if (str[i + 1] == 'u')
-				c = ft_putunsigned_fd(va_arg(args, unsigned int), 1, c);
-			else if (str[i + 1] == 'x')
-				ft_dec_a_hex(va_arg(args, int), 1, "0123456789abcdef", c);
-			else if (str[i + 1] == 'X')
-				ft_dec_a_hex(va_arg(args, int), 1, "0123456789ABCDEF", c);
-			else if (str[i + 1] == '%')
-			{
-				write (1, "%%", 1);
-				c++;
-			}
+			c = c + ft_write(args, str[i + 1]);
 			i = i + 2;
 		}
-		write (1, &str[i++], 1);
-		c++;
+		else
+		{
+			write (1, &str[i++], 1);
+			c++;
+		}
 	}
 	va_end(args);
 	return (c);
 }
-
+/*
 int	main(void)
 {	
 	int	x;
+	int	a;
+	int	ptr;
 
-	printf("El caracter es %%%\n");
-	//x = ft_printf("El caracter es %x\n", 160);
-	//printf("%d", x);
+	a = printf("ptr es %c\n", '*');
+	x = ft_printf("ptr es %c\n", '*');
+	printf("%d y %d\n", a, x);
 	return (0);
-}
+}*/
