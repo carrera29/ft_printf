@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_put_unsigned.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: clcarre <clcarrer@student.42madrid.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/18 08:32:55 by clcarre           #+#    #+#             */
-/*   Updated: 2022/04/19 15:13:27 by marvin           ###   ########.fr       */
+/*   Updated: 2022/04/22 08:19:00 by clcarre          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,9 @@ static int	ft_contador(unsigned int n)
 
 int	ft_put_unsigned(unsigned int n, int fd)
 {
-	int c;
+	int	c;
 
-	c =	ft_contador(n);
+	c = ft_contador(n);
 	if (n > 9)
 	{
 		ft_put_unsigned(n / 10, fd);
